@@ -3,6 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script src="script.js"></script>
     <title>Semanário Centralizado - Paisagem</title>
     <style>
       * {
@@ -213,6 +217,8 @@
         content: "\00a0\00a0\00a0"; /* Espaços em branco invisíveis para manter a linha */
       }
     </style>
+
+    <script></script>
   </head>
   <body>
     <div class="header-box">
@@ -451,6 +457,55 @@
         "
       >
         SALVAR E IMPRIMIR PDF
+      </button>
+      <button
+        onclick="novoSemanario()"
+        style="
+          padding: 12px 30px;
+          background: #28a745;
+          color: white;
+          border: none;
+          border-radius: 4px;
+          cursor: pointer;
+          font-weight: bold;
+          font-size: 14px;
+        "
+      >
+        NOVO / LIMPAR
+      </button>
+    </div>
+    <div id="historico-semanarios" class="no-print">
+      <h3>Histórico de Semanários</h3>
+      <ul id="lista-alunos"></ul>
+      <button
+        onclick="carregarSemanarios()"
+        style="
+          padding: 12px 30px;
+          background: #28a745;
+          color: white;
+          border: none;
+          border-radius: 4px;
+          cursor: pointer;
+          font-weight: bold;
+          font-size: 14px;
+        "
+      >
+        Atualizar Lista
+      </button>
+      <button
+        onclick="enviarParaSupabase()"
+        style="
+          padding: 12px 30px;
+          background: #28a745;
+          color: white;
+          border: none;
+          border-radius: 4px;
+          cursor: pointer;
+          font-weight: bold;
+          font-size: 14px;
+       ; ..."
+      >
+        NUVEM: SALVAR NO BANCO
       </button>
     </div>
 
