@@ -1,0 +1,385 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Semanário Centralizado - Paisagem</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 15px;
+        color: #333;
+        font-size: 11px;
+        /* Flexbox no body ajuda a centralizar os blocos principais na tela */
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      /* Cabeçalho Superior Centralizado */
+      .header-box {
+        border: 0px solid #c30303;
+        display: flex;
+        align-items: center;
+        padding-right: 10%;
+        width: 100%;
+        max-width: 950px; /* Define um limite para não espalhar muito em telas grandes */
+        margin-bottom: 0px;
+      }
+
+      .logo-container {
+        flex: 0 0 150px; /* Aumentado de 100px para 150px */
+        text-align: center;
+      }
+      .logo-container img {
+        max-width: 150px; /* Aumentado de 80px para 130px */
+        height: auto;
+      }
+
+      .header-text {
+        flex: 1;
+        text-align: center;
+        line-height: 1.2;
+      }
+      .header-text h1 {
+        margin: 0;
+        font-size: 16px;
+        text-transform: uppercase;
+      }
+      .header-text p {
+        margin: 1px 0;
+        font-size: 12px;
+        font-weight: 600;
+        font-family: Arial, Helvetica, sans-serif;
+      }
+
+      /* Tabela de Identificação Centralizada */
+      .id-table {
+        width: 100%;
+        max-width: 950px;
+        border-collapse: collapse;
+        margin-bottom: 15px;
+        min-height: 90px;
+        border: 0.5px solid #000000;
+      }
+      .id-table td {
+        border-bottom: 0.5px solid #000000;
+        border-top: 0.5 solid #000;
+        padding: 4px 8px;
+        font-size: 16px;
+        font-weight: 100;
+        font-family: "Times New Roman", Times, serif;
+      }
+
+      /* TABELA PRINCIPAL CENTRALIZADA */
+      .main-table {
+        width: 100%;
+        max-width: 950px; /* Mesma largura dos outros blocos para alinhar verticalmente */
+        border-collapse: collapse;
+        table-layout: fixed;
+        margin: 0 auto; /* Centraliza a tabela horizontalmente */
+      }
+
+      .main-table th,
+      .main-table td {
+        border: 0.5px solid #000000;
+        padding: 5px;
+        vertical-align: top;
+        font-family: "Times New Roman", Times, serif;
+      }
+
+      .main-table th {
+        background-color: #f2f2f2;
+        text-align: center; /* Centraliza o texto do cabeçalho da tabela */
+        font-size: 14px;
+        font-weight: bold;
+        font-family: "Times New Roman", Times, serif;
+      }
+
+      .row-label {
+        background-color: #fffff;
+        font-weight: normal;
+        width: 140px;
+        font-size: 16px;
+        text-align: center;
+        font-family: "Times New Roman", Times, serif;
+      }
+
+      .editable-cell {
+        width: 100%;
+        min-height: 100px;
+        outline: none;
+        white-space: pre-wrap;
+        font-family: "Times New Roman", Times, serif;
+
+        font-size: 12px;
+      }
+      .editable-input {
+        display: inline-block;
+        min-width: 10px;
+        outline: none;
+        border-bottom: 0.5px solid #ccc; /* Linha discreta para saber onde digitar */
+        margin-left: 5px;
+        font-weight: normal;
+        text-transform: capitalize;
+        font-family: "Times New Roman", Times, serif;
+
+        white-space: normal;
+        vertical-align: bottom;
+      }
+
+      /* Assinaturas Centralizadas */
+      .signatures {
+        display: flex;
+        justify-content: center; /* Centraliza as assinaturas entre si */
+        width: 100%;
+        max-width: 1000px;
+        margin-top: 60px;
+        gap: 40px;
+      }
+      .sig-box {
+        flex: 0 1 250px; /* Define um tamanho base para as linhas */
+        border-top: 0.5px solid #000;
+        text-align: center;
+        padding-top: 4px;
+        font-weight: 300;
+        font-size: 14px;
+        font-family: "Times New Roman", Times, serif;
+      }
+
+      .footer-note {
+        max-width: 850px;
+        margin-top: 30px;
+        padding-left: 8%;
+        padding-right: 8%;
+        font-size: 12px;
+        text-align: left; /* Centraliza o texto legal no rodapé */
+        color: #444;
+        border: 0.5px solid #ffffff;
+        font-family: "Times New Roman", Times, serif;
+      }
+
+      .editable {
+        outline: none;
+        font-size: 12px;
+      }
+
+      @media print {
+        @page {
+          size: landscape;
+          margin: 0.8cm;
+        }
+        .no-print {
+          display: none;
+        }
+        body {
+          padding: 0;
+          align-items: stretch;
+        } /* No papel, ocupa a largura toda */
+        .main-table,
+        .header-box,
+        .id-table,
+        .signatures,
+        .footer-note {
+          max-width: 100%;
+        }
+      }
+
+      /* Estilo para os pequenos blocos de data */
+      .date-field {
+        display: inline-flex; /* Mantém os itens em linha e permite alinhamento vertical */
+        align-items: center; /* Alinha as barras e números no centro da linha */
+        vertical-align: middle;
+      }
+
+      .edit-date {
+        display: inline-block;
+        min-width: 25px; /* Tamanho ideal para 2 dígitos */
+        border-bottom: 0.5px solid #000;
+        text-align: center;
+        outline: none;
+        margin: 0 2px;
+        font-weight: normal;
+      }
+
+      /* Evita que o campo desapareça se estiver vazio */
+      .edit-date:empty:before {
+        content: "\00a0\00a0\00a0"; /* Espaços em branco invisíveis para manter a linha */
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header-box">
+      <div class="logo-container">
+        <img src="logo.png" alt="Logo" />
+      </div>
+      <div class="header-text">
+        <p>
+          <strong style="font-size: 16px">EMTI "PROFª MARILENA GAZZOLA"</strong>
+        </p>
+        <p style="font-size: 12px; font-weight: 300">
+          Rua Sorocaba, 936, Vila Santa Terezinha
+        </p>
+        <p style="font-size: 12px; font-weight: 300">
+          CEP: 13310-335 - Itu, SP
+        </p>
+        <p style="font-size: 12px; font-weight: 300">Tel. (11) 4013-1950</p>
+
+        <p>
+          <span style="font-size: 12px; font-weight: 300">E-mail: </span>
+          <span
+            style="font-size: 12px; font-weight: 300; color: rgb(104, 159, 243)"
+          >
+            emti.marilena@educacaoitu.sp.gov.br</span
+          >
+        </p>
+      </div>
+    </div>
+
+    <table class="id-table">
+      <tr>
+        <td colspan="4">
+          <strong>Unidade escolar:</strong>
+          <span class="editable-input" contenteditable="true"></span>
+        </td>
+      </tr>
+      <tr>
+        <td style="width: 45%">
+          <strong>Nome do(a) Professor(a) ADJ:</strong>
+          <span class="editable-input" contenteditable="true"></span>
+        </td>
+        <td colspan="3">
+          <strong>Nome do(a) Professor(a):</strong>
+          <span class="editable-input" contenteditable="true"></span>
+        </td>
+      </tr>
+      <tr>
+        <td style="width: 25%">
+          <strong>Nome do(a) Aluno(a):</strong>
+          <span
+            class="editable-input classe-nome-aluno"
+            contenteditable="true"
+          ></span>
+        </td>
+
+        <td style="width: 15%">
+          <strong>Turma:</strong>
+          <span class="editable-input" contenteditable="true"></span>
+        </td>
+        <td style="width: 15%">
+          <strong>Ano Letivo:</strong>
+          <span class="editable-input" contenteditable="true"></span>
+        </td>
+        <td style="width: 40%">
+          <strong>Semana:</strong>
+          <span class="date-field">
+            <span class="edit-date" contenteditable="true"></span>/
+            <span class="edit-date" contenteditable="true"></span>
+            a
+            <span class="edit-date" contenteditable="true"></span>/
+            <span class="edit-date" contenteditable="true"></span>
+          </span>
+        </td>
+      </tr>
+    </table>
+
+    <table class="main-table">
+      <thead>
+        <tr>
+          <th style="width: 140px">Campo / Dia</th>
+          <th>Segunda</th>
+          <th>Terça</th>
+          <th>Quarta</th>
+          <th>Quinta</th>
+          <th>Sexta</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="row-label">INTENÇÃO PEDAGÓGICA</td>
+          <td><div class="editable-cell" contenteditable="true"></div></td>
+          <td><div class="editable-cell" contenteditable="true"></div></td>
+          <td><div class="editable-cell" contenteditable="true"></div></td>
+          <td><div class="editable-cell" contenteditable="true"></div></td>
+          <td><div class="editable-cell" contenteditable="true"></div></td>
+        </tr>
+        <tr>
+          <td class="row-label">MATERIAL ADAPTADO / ESTRATÉGIA</td>
+          <td><div class="editable-cell" contenteditable="true"></div></td>
+          <td><div class="editable-cell" contenteditable="true"></div></td>
+          <td><div class="editable-cell" contenteditable="true"></div></td>
+          <td><div class="editable-cell" contenteditable="true"></div></td>
+          <td><div class="editable-cell" contenteditable="true"></div></td>
+        </tr>
+        <tr>
+          <td class="row-label">DESFECHO / OBSERVAÇÕES E OCORRÊNCIAS</td>
+          <td><div class="editable-cell" contenteditable="true"></div></td>
+          <td><div class="editable-cell" contenteditable="true"></div></td>
+          <td><div class="editable-cell" contenteditable="true"></div></td>
+          <td><div class="editable-cell" contenteditable="true"></div></td>
+          <td><div class="editable-cell" contenteditable="true"></div></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="signatures">
+      <div class="sig-box">Professor(a) ADJ</div>
+      <div class="sig-box">Professor(a)</div>
+      <div class="sig-box">Coordenação</div>
+    </div>
+
+    <div class="footer-note">
+      Este semanário segue os princípios da educação inclusiva conforme previsto
+      na Lei Brasileira de Inclusão da Pessoa com Deficiência (Lei nº
+      13.146/2015), na LDB (Lei nº 9.394/96), na Base Nacional Comum Curricular
+      (BNCC), e nas Resoluções CNE/CEB nº 4/2009 e nº 2/2015.O planejamento deve
+      garantir a participação plena do estudante, respeitando suas necessidades
+      individuais e considerando estratégias acessíveis, metodologias
+      diferenciadas e avaliação compatível com seu processo de aprendizagem.
+    </div>
+
+    <div class="no-print" style="margin-top: 20px; text-align: center">
+      <button
+        onclick="prepararDownload()"
+        style="
+          padding: 12px 30px;
+          background: #28a745;
+          color: white;
+          border: none;
+          border-radius: 4px;
+          cursor: pointer;
+          font-weight: bold;
+          font-size: 14px;
+        "
+      >
+        SALVAR E IMPRIMIR PDF
+      </button>
+    </div>
+
+    <script>
+      function prepararDownload() {
+        const elementoAluno = document.querySelector(".classe-nome-aluno");
+        const nomeAluno = elementoAluno
+          ? elementoAluno.innerText.trim() || "Sem_Nome"
+          : "Aluno";
+
+        const data = new Date();
+        const dataFormatada = `${String(data.getDate()).padStart(2, "0")}-${String(data.getMonth() + 1).padStart(2, "0")}-${data.getFullYear()}`;
+
+        const tituloOriginal = document.title;
+        document.title = `Semanário - ${nomeAluno} - ${dataFormatada}`;
+
+        window.print();
+
+        setTimeout(() => {
+          document.title = tituloOriginal;
+        }, 1000);
+      }
+    </script>
+  </body>
+</html>
