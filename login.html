@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Login - Sistema Semanário</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        background: #f0f2f5;
+      }
+      .login-card {
+        background: white;
+        padding: 2rem;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        width: 300px;
+      }
+      input {
+        width: 100%;
+        padding: 10px;
+        margin: 10px 0;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+      }
+      button {
+        width: 100%;
+        padding: 10px;
+        background: #007bff;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      button:hover {
+        background: #0056b3;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="login-card">
+      <h2>Acesso</h2>
+      <input
+        type="email"
+        id="email"
+        placeholder="Seu e-mail cadastrado"
+        required
+      />
+      <input
+        type="password"
+        id="telefone"
+        placeholder="Senha (seu telefone)"
+        required
+      />
+      <button onclick="fazerLogin()">Entrar</button>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <script>
+      async function fazerLogin() {
+        const emailInput = document
+          .getElementById("email")
+          .value.trim()
+          .toLowerCase();
+        const senhaInput = document.getElementById("telefone").value.trim();
+
+        const { data, error } = await supabaseClient
+          .from("semanariousers")
+          .select("*")
+          .eq("email", emailInput)
+          .maybeSingle();
+
+        if (error) {
+          alert("Erro ao conectar ao banco.");
+          return;
+        }
+
+        if (data) {
+          // Limpa o telefone para pegar apenas números
+          const telefoneLimpo = data.telefone.replace(/\D/g, "");
+          const ultimosQuatro = telefoneLimpo.slice(-4);
+
+          if (senhaInput === ultimosQuatro) {
+            // 1. Salva os dados no navegador
+            localStorage.setItem("usuarioAtivo", JSON.stringify(data));
+
+            // 2. Lógica de Redirecionamento por Permissão
+            if (data.permissoes === "admin") {
+              window.location.href = "admin.html";
+            } else {
+              window.location.href = "semanarios.html";
+            }
+          } else {
+            alert(
+              "Senha incorreta (Dica: são os 4 últimos dígitos do seu telefone).",
+            );
+          }
+        } else {
+          alert("Usuário não cadastrado.");
+        }
+      }
+    </script>
+  </body>
+</html>

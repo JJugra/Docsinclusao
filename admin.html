@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Painel Admin - Gerenciar Usuários</title>
+    <style>
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        margin: 20px;
+        background: #f4f7f6;
+      }
+      .container {
+        max-width: 1000px;
+        margin: auto;
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+      h2 {
+        color: #333;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+      }
+      th,
+      td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+      }
+      th {
+        background-color: #007bff;
+        color: white;
+      }
+      .form-group {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 20px;
+        background: #e9ecef;
+        padding: 15px;
+        border-radius: 5px;
+      }
+      input,
+      select {
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+      }
+      .btn {
+        padding: 10px 15px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        color: white;
+      }
+      .btn-add {
+        background: #28a745;
+        grid-column: span 3;
+      }
+      .btn-del {
+        background: #dc3545;
+        padding: 5px 10px;
+      }
+      .badge {
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 0.8em;
+      }
+      .badge-admin {
+        background: #ffc107;
+        color: #000;
+      }
+      .badge-user {
+        background: #17a2b8;
+        color: #fff;
+      }
+      /* Estilo do Modal de Edição */
+      #modal-editar {
+        display: none;
+        position: fixed;
+        z-index: 100;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+      }
+      .modal-content {
+        background-color: white;
+        margin: 10% auto;
+        padding: 20px;
+        width: 400px;
+        border-radius: 8px;
+      }
+      .modal-content input,
+      .modal-content select {
+        width: 100%;
+        margin-bottom: 10px;
+        padding: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="modal-editar">
+      <div class="modal-content">
+        <h3>Editar Usuário</h3>
+        <input type="hidden" id="edit-id" />
+        <label>Nome:</label>
+        <input type="text" id="edit-nome" />
+        <label>Telefone:</label>
+        <input type="text" id="edit-telefone" />
+        <label>Turma:</label>
+        <input type="text" id="edit-turma" />
+        <label>Permissão:</label>
+        <select id="edit-perm">
+          <option value="user">user</option>
+          <option value="admin">admin</option>
+        </select>
+        <button class="btn btn-add" onclick="salvarAlteracao()">
+          Salvar Alterações
+        </button>
+        <button
+          class="btn btn-del"
+          onclick="fecharModal()"
+          style="width: 100%; margin-top: 5px"
+        >
+          Cancelar
+        </button>
+      </div>
+    </div>
+
+    <div class="container">
+      <button onclick="sair()">Sair do Sistema</button>
+
+      <script>
+        function sair() {
+          localStorage.removeItem("usuarioAtivo");
+          window.location.href = "login.html";
+        }
+      </script>
+      <h2>Gerenciamento de Usuários (Professores)</h2>
+
+      <div class="form-group">
+        <input
+          type="text"
+          id="new-nome"
+          placeholder="Nome do Professor (ADJ)"
+        />
+        <input type="email" id="new-email" placeholder="E-mail" />
+        <input
+          type="text"
+          id="new-telefone"
+          placeholder="Telefone (Senha será os 4 últimos)"
+        />
+        <input type="text" id="new-turma" placeholder="Turma" />
+
+        <select id="new-perm">
+          <option value="user">Usuário Comum</option>
+          <option value="admin">Administrador</option>
+        </select>
+        <select id="new-can-add">
+          <option value="false">Não pode add alunos</option>
+          <option value="true">Pode add alunos</option>
+        </select>
+        <button class="btn btn-add" onclick="cadastrarUsuario()">
+          Cadastrar Novo Professor
+        </button>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Nome (ADJ)</th>
+            <th>E-mail</th>
+            <th>Turma</th>
+            <th>Permissão</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody id="lista-usuarios"></tbody>
+      </table>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <script>
+      // 1. Proteger a página: Só entra se for Admin no localStorage
+      window.onload = async () => {
+        const cache = localStorage.getItem("usuarioAtivo");
+        if (!cache) {
+          window.location.href = "login.html";
+          return;
+        }
+
+        const user = JSON.parse(cache);
+        if (user.permissoes !== "admin") {
+          alert("Acesso negado! Área restrita a administradores.");
+          window.location.href = "semanarios.html";
+        }
+        carregarUsuarios();
+      };
+
+      // 2. Listar Usuários
+      async function carregarUsuarios() {
+        const { data, error } = await supabaseClient
+          .from("semanariousers")
+          .select("*")
+          .order("nome", { ascending: true });
+
+        if (error) return console.error(error);
+
+        const tbody = document.getElementById("lista-usuarios");
+        tbody.innerHTML = "";
+
+        data.forEach((u) => {
+          tbody.innerHTML += `
+                <tr>
+        <td>${u.nome}</td>
+        <td>${u.email}</td>
+        <td>${u.turma || "-"}</td>
+        <td><span class="badge ${u.permissoes === "admin" ? "badge-admin" : "badge-user"}">${u.permissoes}</span></td>
+        <td>
+            <button class="btn" style="background:#007bff" onclick='abrirModalEditar(${JSON.stringify(u)})'>Editar</button>
+            <button class="btn btn-del" onclick="deletarUsuario(${u.id})">Excluir</button>
+        </td>
+    </tr>
+`;
+        });
+      }
+
+      // 3. Cadastrar Usuário
+      async function cadastrarUsuario() {
+        const novo = {
+          nome: document.getElementById("new-nome").value,
+          email: document.getElementById("new-email").value.toLowerCase(),
+          telefone: document.getElementById("new-telefone").value,
+          turma: document.getElementById("new-turma").value,
+          permissoes: document.getElementById("new-perm").value,
+          pode_inserir_alunos:
+            document.getElementById("new-can-add").value === "true",
+        };
+
+        const { error } = await supabaseClient
+          .from("semanariousers")
+          .insert([novo]);
+
+        if (error) {
+          alert("Erro ao cadastrar: " + error.message);
+        } else {
+          alert("Professor cadastrado com sucesso!");
+          location.reload();
+        }
+      }
+
+      // 4. Deletar Usuário
+      async function deletarUsuario(id) {
+        if (!confirm("Tem certeza que deseja excluir este professor?")) return;
+
+        const { error } = await supabaseClient
+          .from("semanariousers")
+          .delete()
+          .eq("id", id);
+        if (error) alert(error.message);
+        else carregarUsuarios();
+      }
+
+      function abrirModalEditar(usuario) {
+        document.getElementById("edit-id").value = usuario.id;
+        document.getElementById("edit-nome").value = usuario.nome;
+        document.getElementById("edit-telefone").value = usuario.telefone;
+        document.getElementById("edit-turma").value = usuario.turma;
+        document.getElementById("edit-perm").value = usuario.permissoes;
+
+        document.getElementById("modal-editar").style.display = "block";
+      }
+
+      function fecharModal() {
+        document.getElementById("modal-editar").style.display = "none";
+      }
+
+      async function salvarAlteracao() {
+        const idInput = document.getElementById("edit-id").value;
+        const id = Number(idInput); // Garantindo que é número
+
+        if (!id) {
+          alert("Erro: ID do usuário não encontrado.");
+          return;
+        }
+
+        const dadosAtualizados = {
+          nome: document.getElementById("edit-nome").value,
+          telefone: document.getElementById("edit-telefone").value,
+          turma: document.getElementById("edit-turma").value,
+          permissoes: document.getElementById("edit-perm").value,
+        };
+
+        console.log("Enviando alteração para ID:", id, dadosAtualizados);
+
+        const { data, error } = await supabaseClient
+          .from("semanariousers")
+          .update(dadosAtualizados)
+          .eq("id", id)
+          .select(); // Força o retorno dos dados alterados
+
+        if (error) {
+          console.error("Erro no Supabase:", error);
+          alert("Erro ao atualizar: " + error.message);
+        } else if (data && data.length > 0) {
+          console.log("Sucesso! Dados retornados:", data);
+          alert("Usuário atualizado com sucesso!");
+          fecharModal();
+          carregarUsuarios();
+        } else {
+          console.warn(
+            "Nenhuma linha foi afetada. Verifique se o ID existe no banco.",
+          );
+          alert(
+            "Aviso: O banco de dados não encontrou o usuário para atualizar.",
+          );
+        }
+      }
+    </script>
+  </body>
+</html>
