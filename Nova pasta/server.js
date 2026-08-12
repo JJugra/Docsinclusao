@@ -8,7 +8,7 @@ app.use(express.static(__dirname));
 
 // Rota principal: ao abrir localhost:3000, ele vai para o login
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "admin.html"));
+  res.sendFile(path.join(__dirname, "login.html"));
 });
 
 app.listen(port, () => {

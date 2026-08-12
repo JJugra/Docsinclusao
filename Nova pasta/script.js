@@ -50,12 +50,65 @@ const MAPA_SEMANAS_2026 = {
   "28/12 a 01/01": "47ª semana",
 };
 
+// Função utilitária para exibir Notificações Toast Modernas
+function showToast(message, type = 'success', duration = 5000) {
+  let container = document.querySelector('.custom-toast-container');
+  if (!container) {
+    container = document.createElement('div');
+    container.className = 'custom-toast-container';
+    document.body.appendChild(container);
+  }
+
+  const toast = document.createElement('div');
+  toast.className = `custom-toast ${type}`;
+  toast.style.setProperty('--toast-duration', `${duration}ms`);
+
+  const icon = type === 'success' ? '✅' : 'ℹ️';
+  const title = type === 'success' ? 'Sucesso!' : 'Informação';
+
+  toast.innerHTML = `
+    <div class="custom-toast-icon">${icon}</div>
+    <div class="custom-toast-content">
+      <div class="custom-toast-title">${title}</div>
+      <div class="custom-toast-message">${message}</div>
+    </div>
+    <button class="custom-toast-close">&times;</button>
+    <div class="custom-toast-progress"></div>
+  `;
+
+  toast.querySelector('.custom-toast-close').onclick = () => removeToast(toast);
+
+  container.appendChild(toast);
+
+  // Força refluxo para disparar a animação
+  toast.offsetHeight;
+  toast.classList.add('show');
+
+  const timer = setTimeout(() => {
+    removeToast(toast);
+  }, duration);
+
+  function removeToast(el) {
+    clearTimeout(timer);
+    el.classList.remove('show');
+    el.classList.add('hide');
+    el.addEventListener('transitionend', function handler(e) {
+      if (e.propertyName === 'transform' || e.propertyName === 'opacity') {
+        el.remove();
+        if (container.children.length === 0) {
+          container.remove();
+        }
+      }
+    });
+  }
+}
+
 // 2. Função para SALVAR
 // No topo do arquivo script.js, garanta que esta variável existe:
 
 async function enviarParaSupabase() {
   if (!supabaseClient) {
-    showToast("Erro: Cliente Supabase não configurado.", "error");
+    alert("Erro: Cliente Supabase não configurado.");
     return;
   }
 
@@ -63,7 +116,7 @@ async function enviarParaSupabase() {
     // 1. Captura o Professor Logado
     const cache = localStorage.getItem("usuarioAtivo");
     if (!cache) {
-      showToast("Sessão expirada! Por favor, faça login novamente.", "warning");
+      alert("Sessão expirada! Por favor, faça login novamente.");
       window.location.href = "admin.html";
       return;
     }
@@ -153,23 +206,9 @@ async function enviarParaSupabase() {
     }
   } catch (error) {
     console.error("Erro completo:", error);
-    showToast("Erro ao salvar: " + error.message, "error");
+    alert("Erro ao salvar: " + error.message);
   }
-}
-async function salvarEGerarPDF() {
-  try {
-    // Salva no banco
-    await enviarParaSupabase();
-
-    // Gera PDF
-    await gerarPDF();
-  } catch (erro) {
-    console.error(erro);
-    showToast("Erro: " + erro.message, "error");
-  }
-}
-
-// <--- ESTA CHAVE FECHA A FUNÇÃO E DEVE SER A ÚLTIMA.
+} // <--- ESTA CHAVE FECHA A FUNÇÃO E DEVE SER A ÚLTIMA.
 // 3. Função para CARREGAR A LISTA (O histórico)
 async function carregarSemanarios() {
   try {
@@ -286,7 +325,7 @@ async function excluirSemanario(id, semanaNome) {
 
     if (error) throw error;
 
-    showToast("Semanário excluído com sucesso!", "success");
+    alert("Semanário excluído com sucesso!");
 
     // Se o semanário que você excluiu era o que estava aberto na tela, limpe o formulário
     if (idSemanarioAberto === id) {
@@ -296,7 +335,7 @@ async function excluirSemanario(id, semanaNome) {
     // Atualiza a lista lateral automaticamente
     carregarSemanarios();
   } catch (error) {
-    showToast("Erro ao excluir: " + error.message, "error");
+    alert("Erro ao excluir: " + error.message);
   }
 }
 // 5. Função para VOLTAR OS DADOS PARA A TABELA
@@ -313,7 +352,7 @@ async function abrirSemanario(id) {
 
     if (error) throw error;
     if (!item) {
-      showToast("Semanário não encontrado!", "error");
+      alert("Semanário não encontrado!");
       return;
     }
 
@@ -352,11 +391,11 @@ async function abrirSemanario(id) {
       }
     }
 
-    showToast("Semanário carregado!", "success");
+    alert("Semanário carregado!");
     window.scrollTo({ top: 0, behavior: "smooth" });
   } catch (err) {
     console.error("Erro crítico ao abrir:", err);
-    showToast("Erro ao carregar: " + err.message, "error");
+    alert("Erro ao carregar: " + err.message);
   }
 }
 
@@ -408,7 +447,7 @@ function novoSemanario() {
     if (celula) celula.innerText = "";
   }
 
-  showToast("Formulário limpo para novo registro.", "info");
+  alert("Formulário limpo para novo registro.");
 }
 function exibirLista(semanarios) {
   const listaContainer = document.getElementById("lista-alunos");

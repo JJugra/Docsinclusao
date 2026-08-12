@@ -1,49 +1,38 @@
-// scriptpermission.js
+const TEMPO_INATIVO = 120000; // 1 minuto
 
-async function verificarSessao() {
-  const cache = localStorage.getItem("usuarioAtivo");
+let tempoRestante = TEMPO_INATIVO;
+let timerInatividade;
+let intervaloContador;
 
-  if (!cache) {
-    console.warn("Nenhum usuário no cache, redirecionando...");
-    window.location.href = "login.html";
-    return;
-  }
+function atualizarContador() {
+  const segundos = Math.floor(tempoRestante / 1000);
+  const min = String(Math.floor(segundos / 60)).padStart(2, "0");
+  const seg = String(segundos % 60).padStart(2, "0");
 
-  const usuario = JSON.parse(cache);
-  console.log("Dados do usuário recuperados:", usuario);
+  document.getElementById("tempo-restante").textContent = `${min}:${seg}`;
 
-  // Pequeno atraso para garantir que o DOM carregou completamente
-  setTimeout(() => {
-    preencherCamposSemanario(usuario);
-  }, 100);
+  tempoRestante -= 1000;
 }
 
-function preencherCamposSemanario(u) {
-  // Verificando se o ID existe antes de tentar preencher
-  const campoAdj = document.getElementById("field-prof-adj");
-
-  if (campoAdj) {
-    console.log("Elemento field-prof-adj encontrado! Preenchendo com:", u.nome);
-    campoAdj.innerText = u.nome || "Nome não encontrado";
-  } else {
-    console.error(
-      "ERRO: Elemento 'field-prof-adj' não foi encontrado no HTML.",
-    );
-  }
-
-  // Preencher os outros campos
-  const outrosCampos = {
-    "field-turma": u.turma,
-    "field-telefone": u.telefone,
-    "field-ano": u.ano_letivo,
-    "field-aluno1": u.aluno1,
-    "field-aluno2": u.aluno2,
-  };
-
-  for (const [id, valor] of Object.entries(outrosCampos)) {
-    const el = document.getElementById(id);
-    if (el) el.innerText = valor || "";
-  }
+function logout() {
+  alert("Sessão encerrada por inatividade.");
+  localStorage.removeItem("usuarioAtivo");
+  window.location.href = "admin.html";
 }
 
-window.addEventListener("load", verificarSessao);
+function resetarInatividade() {
+  clearTimeout(timerInatividade);
+
+  tempoRestante = TEMPO_INATIVO;
+  atualizarContador();
+
+  timerInatividade = setTimeout(logout, TEMPO_INATIVO);
+}
+
+["mousemove", "keydown", "click", "scroll", "touchstart"].forEach((evt) => {
+  document.addEventListener(evt, resetarInatividade);
+});
+
+intervaloContador = setInterval(atualizarContador, 1000);
+
+resetarInatividade();

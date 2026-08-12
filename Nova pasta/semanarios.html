@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
     <script src="toast.js"></script>
@@ -15,9 +15,6 @@
     <title>Semanário : Doc-Inclusão</title>
   </head>
   <body>
-    <div id="contador-sessao">
-      Sessão: <span id="tempo-restante">01:00</span>
-    </div>
     <div class="header-box">
       <div class="logo-container">
         <img src="logo.png" alt="Logo" />
@@ -278,7 +275,7 @@
           font-size: 14px;
         "
       >
-        IMPRIMIR PDF
+        SALVAR E IMPRIMIR PDF
       </button>
 
       <button
@@ -351,7 +348,6 @@
           window.location.href = "admin.html";
         }
       </script>
-
       <button
         onclick="enviarParaSupabase()"
         style="
